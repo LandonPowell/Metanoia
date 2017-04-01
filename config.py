@@ -1,4 +1,4 @@
 # This file is a branding config.
-name = "Browser"
+name = "Metanoia"
 icon = "browser.png"
 homePage = "https://duckduckgo.com/"
