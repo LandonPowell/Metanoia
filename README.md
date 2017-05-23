@@ -23,6 +23,8 @@ Metanoia includes the ability to embed a small window into the bottom right corn
 
 `Ctrl-L` - Focus on the URL bar, so you can begin typing a search query or website URL.
 
+Launching Metanoia through a terminal emulator will result in a prompt through which you can run JS by default, or with a few keystrokes, run searches, open urls, and eventually do many other tasks.
+
 ### Running in Wayland? Try `python browser.py -platform wayland`.
 
 ### Note : Metanoia supports HTTP as a fallback, but use of it instead of HTTPS will return a garrish popup error box. 
