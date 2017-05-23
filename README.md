@@ -13,7 +13,7 @@ Metanoia includes the ability to embed a small window into the bottom right corn
 
 `Ctrl-X` - Closes the embeded window.
 
-`RightClick-Embed Link` - Opens the embeded window.
+`Context Menu Button - Embed Link` or `Right Click - Embed Link` - Opens the embeded window.
 
 `Ctrl-TAB` - Moves through your tabs. 
 
