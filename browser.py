@@ -1,12 +1,13 @@
+#!/usr/bin/env python
 # Intended for Python2
 
-"""
-    /etc/browserConfig/ must be created with the
-    correct files placed within it for this to work
-    properly.
-
-    * /etc/browserConfig/style.css
-"""
+#"""
+#    /etc/browserConfig/ must be created with the
+#    correct files placed within it for this to work
+#    properly.
+#
+#    * /etc/browserConfig/style.css
+#"""
 
 import sys
 import config
@@ -29,7 +30,7 @@ from PyQt5.QtWidgets import (
 )
 
 from PyQt5.QtWebKit import *
-from PyQt5.QtWebKitWidgets import QWebView, QWebInspector
+from PyQt5.QtWebKitWidgets import QWebView, QWebInspector, QWebPage
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -74,6 +75,8 @@ class Window(QMainWindow):
 
         self.omnibar = Omnibar(self.browser, self)
 
+        self.embed = Embed(self)
+
         self.browser.addTab({'url' : QUrl(
             sys.argv[1] if len(sys.argv) > 1
             else config.homePage
@@ -100,16 +103,17 @@ class Window(QMainWindow):
             warning = Warning(self)
 
     def resize(self, resizeEvent):
+        self.embed.autoResize(resizeEvent.size())
+
         self.omnibar.resize(resizeEvent.size().width() - 20,  20)
         self.omnibar.tabBox.resize(resizeEvent.size().width() - 19, 45)
+
         for x in self.browser.tabViews:
             self.browser.tabViews[x].resize(resizeEvent.size())
 
     def event(self, event):
         modifiers = QApplication.keyboardModifiers()
         ctrl = modifiers == Qt.ControlModifier
-
-        if event == QEvent(12345): print(event)
 
         # Hide and show on control press and release.
         if event.type() == 6 and event.key() == 16777249:
@@ -130,19 +134,22 @@ class Window(QMainWindow):
                 })
                 return True
 
-            elif event.key() == Qt.Key_W:
+            elif event.key() == Qt.Key_W: # Closes tab.
                 self.browser.removeTab(self.browser.activeTab)
                 print(self.browser.activeTab)
                 self.browser.moveToHomeTab()
                 return True
 
-            elif event.key() == Qt.Key_Tab:
+            elif event.key() == Qt.Key_Tab: # Moves to next tab.
                 for x in self.browser.tabViews:
                     if x > self.browser.activeTab:
                         self.browser.changeTab(x)
                         return True
                 self.browser.moveToHomeTab()
                 return True
+
+            elif event.key() == Qt.Key_X: # Hides embeded frame.
+                self.embed.hide()
 
         return QMainWindow.event(self, event)
 
@@ -190,6 +197,10 @@ class Browser(QWidget):
             for x in self.tabViews:
                 return self.changeTab(x)
 
+        for x in self.tabViews:
+            return False
+        sys.exit()
+
     def load(self, url):
         self.tabViews[self.activeTab].load(url)
 
@@ -221,9 +232,11 @@ class BrowserTab(QWebView):
         url = hit.linkUrl()
 
         if url.isValid():
+            embedLink = menu.addAction("Embed Link")
             newTab = menu.addAction("New Tab")
             copyLink = menu.addAction("Copy Link Address")
         else:
+            embedLink = ""
             newTab = ""
             copyLink = ""
 
@@ -246,8 +259,13 @@ class BrowserTab(QWebView):
             self.dlg.setModal(False)
             self.dlg.show()
 
+        elif action == embedLink:
+            self.parent.parent.embed.load(url)
+            self.parent.parent.embed.moveIn()
+
         elif action == newTab:
             self.parent.addTab({'url':url})
+
         elif action == copyLink:
             app.clipboard().setText(url.toString())
 
@@ -264,6 +282,66 @@ class BrowserTab(QWebView):
             'title' : title,
             'url' : self.url()
         })
+
+class Embed(QWebView):
+    def __init__(self, parent):
+        super(Embed, self).__init__(parent)
+        self.out = True
+
+        self.parent = parent
+        self.setGeometry(QRect(20, 20, 600, 400))
+        self.setAutoFillBackground(True)
+
+        self.shadow = QGraphicsDropShadowEffect()
+        self.shadow.setBlurRadius(4)
+        self.shadow.setOffset(0,1)
+        self.shadow.setColor(QColor(0,0,0, 100))
+        self.setGraphicsEffect(self.shadow)
+
+    def autoResize(self, size):
+        width = size.width()/3
+        height = size.height()/3
+
+        self.x = size.width() - width - 10
+        self.y = size.height() - height - 10
+
+        self.resize(width, height)
+
+        if not self.out:
+            self.move(self.x, self.y)
+        else:
+            self.move(self.x, self.parent.size().height() + 10)
+
+    def hide(self):
+        self.moveOut()
+        self.setPage(QWebPage())
+
+    def moveOut(self):
+        if self.out:
+            return True
+        self.out = True
+
+        self.anim = QPropertyAnimation(self, "pos")
+        self.anim.setEasingCurve(QEasingCurve.InOutQuad)
+
+        self.anim.setStartValue(self.pos())
+        self.anim.setEndValue(QPointF(
+            self.pos().x(),
+            self.parent.size().height() + 10
+        ))
+        self.anim.start()
+
+    def moveIn(self):
+        if not self.out:
+            return True
+        self.out = False
+
+        self.anim = QPropertyAnimation(self, "pos")
+        self.anim.setEasingCurve(QEasingCurve.InOutQuad)
+
+        self.anim.setStartValue(self.pos())
+        self.anim.setEndValue(QPointF( self.x, self.y ))
+        self.anim.start()
 
 class Omnibar(QFrame):
     def __init__(self, browser, parent):
