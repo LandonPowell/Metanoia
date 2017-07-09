@@ -11,7 +11,6 @@
 
 import sys
 import config
-import thread # To-do
 import re
 from PyQt5.QtWidgets import (
     QApplication,
@@ -43,7 +42,7 @@ class Prompt(QThread):
         self.type = "js"
 
     def run(self):
-        promptText = raw_input(self.type + ":> ")
+        promptText = input(self.type + ":> ")
         if promptText[0] == "@":
             self.type = promptText[1:]
         else:
@@ -321,7 +320,7 @@ class Embed(QWebView):
             return True
         self.out = True
 
-        self.anim = QPropertyAnimation(self, "pos")
+        self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue(self.pos())
@@ -336,7 +335,7 @@ class Embed(QWebView):
             return True
         self.out = False
 
-        self.anim = QPropertyAnimation(self, "pos")
+        self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue(self.pos())
@@ -391,7 +390,7 @@ class Omnibar(QFrame):
             return True
         self.out = True
 
-        self.anim = QPropertyAnimation(self, "pos")
+        self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue(QPointF( 10, 10 ))
@@ -403,7 +402,7 @@ class Omnibar(QFrame):
             return True
         self.out = False
 
-        self.anim = QPropertyAnimation(self, "pos")
+        self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue(QPointF( 10, -50 ))
@@ -470,7 +469,7 @@ class Line(QLineEdit):
         return QLineEdit.event(self, event)
 
     def moveOut(self):
-        self.anim = QPropertyAnimation(self, "size")
+        self.anim = QPropertyAnimation(self, b"size")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue( QSize(self.parent.width(), self.parent.height()) )
@@ -478,7 +477,7 @@ class Line(QLineEdit):
         self.anim.start()
 
     def moveIn(self):
-        self.anim = QPropertyAnimation(self, "size")
+        self.anim = QPropertyAnimation(self, b"size")
         self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.anim.setStartValue( QSize(self.parent.width(), 0) )
